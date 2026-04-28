@@ -1,3 +1,5 @@
+import bootstrap
+
 import streamlit as st
 import plotly.express as px
 from data.loader import load_all_movies

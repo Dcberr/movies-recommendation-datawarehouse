@@ -1,3 +1,5 @@
+import bootstrap
+
 import streamlit as st
 
 from config.settings import APP_CONFIG

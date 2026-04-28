@@ -1,4 +1,5 @@
 # app.py
+import bootstrap
 
 import streamlit as st
 

@@ -1,3 +1,5 @@
+import bootstrap
+
 import streamlit as st
 from data.loader import load_all_movies
 from utils.helpers import (
