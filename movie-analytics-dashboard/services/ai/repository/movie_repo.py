@@ -4,12 +4,24 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+import pyodbc
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from data.db import get_connection
+from config.settings import DB_CONFIG
+
+
+def get_connection():
+    conn_str = (
+        f"DRIVER={{{DB_CONFIG['driver']}}};"
+        f"SERVER={DB_CONFIG['server']};"
+        f"DATABASE={DB_CONFIG['database']};"
+        f"UID={DB_CONFIG['username']};"
+        f"PWD={DB_CONFIG['password']};"
+    )
+    return pyodbc.connect(conn_str)
 
 
 def get_movies_by_genres(genres: list):
