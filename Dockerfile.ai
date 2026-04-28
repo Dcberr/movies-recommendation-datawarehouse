@@ -28,4 +28,4 @@ WORKDIR /app/movie-analytics-dashboard
 
 EXPOSE 8000
 
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "api:app", "--app-dir", "/app/movie-analytics-dashboard", "--host", "0.0.0.0", "--port", "8000"]
