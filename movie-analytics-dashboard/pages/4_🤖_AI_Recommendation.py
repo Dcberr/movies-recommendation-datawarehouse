@@ -1,5 +1,7 @@
 import streamlit as st
+import requests
 
+from config.settings import APP_CONFIG
 from services.ai.pipeline.recommender import recommend_with_context
 from utils.helpers import load_stylesheet, render_app_navigation, render_page_banner, render_section_heading
 
@@ -18,6 +20,20 @@ def run_recommendation(prompt: str, top_k: int):
         return None
 
     with st.spinner("Generating recommendations..."):
+        ai_service_url = APP_CONFIG.get("ai_service_url")
+
+        if ai_service_url:
+            try:
+                response = requests.post(
+                    f"{ai_service_url}/recommend",
+                    json={"prompt": cleaned_prompt, "top_k": top_k},
+                    timeout=30,
+                )
+                response.raise_for_status()
+                return response.json()
+            except requests.RequestException:
+                st.warning("AI service is unavailable, using local recommendation engine instead.")
+
         return recommend_with_context(cleaned_prompt, top_k=top_k)
 
 

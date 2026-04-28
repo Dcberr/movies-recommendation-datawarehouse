@@ -32,6 +32,8 @@ fig = px.line(
 )
 fig.update_traces(line=dict(color="#6c88c4", width=3))
 fig.update_layout(
+    height=420,
+    autosize=True,
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="#11161d",
     font=dict(color="#f3efe6", family="Inter, sans-serif"),
@@ -41,7 +43,11 @@ fig.update_layout(
 fig.update_xaxes(showgrid=True, gridcolor="rgba(255,255,255,0.08)", zeroline=False)
 fig.update_yaxes(showgrid=True, gridcolor="rgba(255,255,255,0.08)", zeroline=False)
 
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(
+    fig,
+    use_container_width=True,
+    config={"responsive": True, "displaylogo": False},
+)
 
 st.divider()
 

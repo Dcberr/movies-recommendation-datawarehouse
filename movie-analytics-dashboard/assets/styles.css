@@ -679,13 +679,14 @@ div[data-baseweb="slider"] {
     padding: 0.35rem 0;
 }
 
-div[data-testid="stPlotlyChart"] > div,
+div[data-testid="stPlotlyChart"],
 .stDataFrame,
 div[data-testid="stAlert"] {
     border-radius: 20px;
 }
 
-div[data-testid="stPlotlyChart"] > div {
+div[data-testid="stPlotlyChart"] {
+    padding: 0.35rem;
     border: 1px solid var(--border);
     background: var(--panel);
     box-shadow: var(--shadow);

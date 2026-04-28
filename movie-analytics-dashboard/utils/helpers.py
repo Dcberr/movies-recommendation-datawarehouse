@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
 
@@ -68,7 +70,8 @@ def normalize_year(df):
 
 
 def load_stylesheet():
-    with open("movie-analytics-dashboard/assets/styles.css") as stylesheet:
+    stylesheet_path = Path(__file__).resolve().parent.parent / "assets" / "styles.css"
+    with stylesheet_path.open() as stylesheet:
         st.markdown(f"<style>{stylesheet.read()}</style>", unsafe_allow_html=True)
 
 

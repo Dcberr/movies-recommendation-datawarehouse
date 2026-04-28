@@ -4,6 +4,7 @@ import streamlit as st
 import plotly.express as px
 
 CHART_COLORS = ["#c8a96b", "#8fb7a3", "#d97b66", "#6c88c4", "#b8a1d9"]
+CHART_HEIGHT = 420
 CHART_LABELS = {
     "title": "Title",
     "weighted_rating": "Weighted Rating",
@@ -15,6 +16,8 @@ CHART_LABELS = {
 
 def _apply_chart_theme(fig):
     fig.update_layout(
+        height=CHART_HEIGHT,
+        autosize=True,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="#11161d",
         font=dict(color="#f3efe6", family="Inter, sans-serif"),
@@ -41,6 +44,14 @@ def _apply_chart_theme(fig):
     return fig
 
 
+def _render_chart(fig):
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={"responsive": True, "displaylogo": False},
+    )
+
+
 def plot_top_movies(df):
     df_top = df.sort_values("weighted_rating", ascending=False).head(10)
 
@@ -56,7 +67,7 @@ def plot_top_movies(df):
     fig.update_layout(yaxis={"categoryorder": "total ascending"})
     _apply_chart_theme(fig)
 
-    st.plotly_chart(fig, use_container_width=True)
+    _render_chart(fig)
 
 
 def plot_rating_distribution(df):
@@ -70,7 +81,7 @@ def plot_rating_distribution(df):
     )
     _apply_chart_theme(fig)
 
-    st.plotly_chart(fig, use_container_width=True)
+    _render_chart(fig)
 
 
 def plot_votes_vs_rating(df):
@@ -86,7 +97,7 @@ def plot_votes_vs_rating(df):
     fig.update_traces(marker=dict(size=9, opacity=0.72, line=dict(width=0)))
     _apply_chart_theme(fig)
 
-    st.plotly_chart(fig, use_container_width=True)
+    _render_chart(fig)
 
 
 def plot_yearly_trend(df):
@@ -102,4 +113,4 @@ def plot_yearly_trend(df):
     fig.update_traces(line=dict(color=CHART_COLORS[3], width=3))
     _apply_chart_theme(fig)
 
-    st.plotly_chart(fig, use_container_width=True)
+    _render_chart(fig)

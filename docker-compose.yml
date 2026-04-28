@@ -1,0 +1,39 @@
+services:
+  ai-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.ai
+    container_name: movie-ai-service
+    env_file:
+      - .env
+    environment:
+      DB_DRIVER: ODBC Driver 18 for SQL Server
+      DB_SERVER: moiverecommendation.database.windows.net
+      DB_NAME: moviedw
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-datawarehouse_admin}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-Movie@123}
+      MOVIE_DW_STORAGE_KEY: ${MOVIE_DW_STORAGE_KEY:-your_storage_key_here}
+    ports:
+      - "8002:8000"
+    restart: unless-stopped
+
+  streamlit-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    container_name: movie-streamlit-ui
+    depends_on:
+      - ai-service
+    env_file:
+      - .env
+    environment:
+      AI_SERVICE_URL: http://ai-service:8000
+      DB_DRIVER: ODBC Driver 18 for SQL Server
+      DB_SERVER: moiverecommendation.database.windows.net
+      DB_NAME: moviedw
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-datawarehouse_admin}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-Movie@123}
+      MOVIE_DW_STORAGE_KEY: ${MOVIE_DW_STORAGE_KEY:-your_storage_key_here}
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
