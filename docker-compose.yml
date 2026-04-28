@@ -7,6 +7,7 @@ services:
     env_file:
       - .env
     environment:
+      PYTHONPATH: /app/movie-analytics-dashboard
       DB_DRIVER: ODBC Driver 18 for SQL Server
       DB_SERVER: moiverecommendation.database.windows.net
       DB_NAME: moviedw
@@ -28,6 +29,7 @@ services:
       - .env
     environment:
       AI_SERVICE_URL: http://ai-service:8000
+      PYTHONPATH: /app/movie-analytics-dashboard
       DB_DRIVER: ODBC Driver 18 for SQL Server
       DB_SERVER: moiverecommendation.database.windows.net
       DB_NAME: moviedw
