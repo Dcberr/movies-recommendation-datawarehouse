@@ -26,25 +26,31 @@ APP_PAGES = [
     },
     {
         "id": "dashboard",
-        "path": "pages/1_📊_Dashboard.py",
+        "path": "pages/Dashboard.py",
         "label": "Dashboard",
         "description": "KPI snapshot and core analytics",
     },
     {
         "id": "movies",
-        "path": "pages/2_🎬_Movies.py",
+        "path": "pages/Movies.py",
         "label": "Movies",
         "description": "Browse the cleaned movie catalog",
     },
     {
+        "id": "realtime_streaming",
+        "path": "pages/Realtime_Streaming.py",
+        "label": "Realtime Streaming",
+        "description": "Monitor live audience activity and streaming trends",
+    },
+    {
         "id": "trends",
-        "path": "pages/3_📈_Trends.py",
+        "path": "pages/Trends.py",
         "label": "Trends",
         "description": "Release-year performance view",
     },
     {
         "id": "ai_recommendation",
-        "path": "pages/4_🤖_AI_Recommendation.py",
+        "path": "pages/AI_Recommendation.py",
         "label": "AI Recommendation",
         "description": "Natural-language movie discovery",
     },
@@ -125,7 +131,7 @@ def render_app_navigation(active_page_id):
         """
         <div class="sidebar-nav-section">
             <p class="sidebar-nav-section__label">Workspace</p>
-            <span class="sidebar-nav-section__count">5 views</span>
+            <span class="sidebar-nav-section__count">6 views</span>
         </div>
         """,
         unsafe_allow_html=True,

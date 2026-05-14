@@ -1,10 +1,20 @@
 import bootstrap
 
+import pandas as pd
 import streamlit as st
 import requests
 
 from config.settings import APP_CONFIG
 from services.ai.pipeline.recommender import recommend_with_context
+from services.streaming.utils.streamlit_tracking import (
+    ensure_streaming_session,
+    render_debug_panel,
+    track_movie_view,
+    track_page_visit,
+    track_rating,
+    track_recommendation_click,
+    track_search,
+)
 from utils.helpers import load_stylesheet, render_app_navigation, render_page_banner, render_section_heading
 
 DEFAULT_PROMPT = "Phim hài hành động cho trẻ em"
@@ -78,16 +88,23 @@ def render_info_panel(title, description, items, empty_text):
 
 def render_result_card(index, item):
     year = item.get("year")
-    year_text = f" ({int(year)})" if year is not None else ""
+    year_text = f" ({int(year)})" if pd.notna(year) else ""
     match_score = item.get("match_score")
+    movie_id = int(item["movie_id"])
     match_markup = (
         f'<span class="result-chip">Genre Match {int(match_score)}</span>'
         if match_score is not None
         else '<span class="result-chip muted-chip">Popular Pick</span>'
     )
     score_markup = ""
-    if item.get("score") is not None:
-        score_markup = f'<span class="result-chip">AI Score {item["score"]:.3f}</span>'
+    if item.get("final_score") is not None:
+        score_markup = f'<span class="result-chip">Final Score {item["final_score"]:.3f}</span>'
+    ml_markup = ""
+    if item.get("ml_probability") is not None:
+        ml_markup = f'<span class="result-chip">ML Like {item["ml_probability"]:.1%}</span>'
+    trending_markup = ""
+    if item.get("trending_score") is not None:
+        trending_markup = f'<span class="result-chip">Trending {item["trending_score"]:.2f}</span>'
 
     st.markdown(
         f"""
@@ -97,8 +114,11 @@ def render_result_card(index, item):
                 <div class="result-header">
                     <h3>{item["title"]}{year_text}</h3>
                     <div class="result-chip-row">
+                        <span class="result-chip">Movie ID {movie_id}</span>
                         {match_markup}
                         {score_markup}
+                        {ml_markup}
+                        {trending_markup}
                     </div>
                 </div>
                 <div class="result-stats">
@@ -110,6 +130,10 @@ def render_result_card(index, item):
                         <p>Vote Count</p>
                         <strong>{int(item["num_votes"]):,}</strong>
                     </div>
+                    <div>
+                        <p>ML Confidence</p>
+                        <strong>{item.get("ml_confidence", 0):.1%}</strong>
+                    </div>
                 </div>
                 <p class="result-reason">{item["reason"]}</p>
             </div>
@@ -118,10 +142,33 @@ def render_result_card(index, item):
         unsafe_allow_html=True,
     )
 
+    action_col1, action_col2 = st.columns(2, gap="small")
+    with action_col1:
+        if st.button("Track Recommendation Click", key=f"rec_click_{movie_id}", use_container_width=True):
+            track_recommendation_click(movie_id)
+
+        if st.button("Track Movie View", key=f"rec_view_{movie_id}", use_container_width=True):
+            track_movie_view(movie_id, source_page="recommendation", success_message="Recommendation movie view tracked!")
+
+    with action_col2:
+        with st.form(f"rec_rate_form_{movie_id}"):
+            rating_value = st.slider(
+                "Rate recommendation",
+                min_value=1.0,
+                max_value=5.0,
+                value=4.0,
+                step=0.5,
+                key=f"rec_rate_slider_{movie_id}",
+            )
+            if st.form_submit_button("Stream Rating", use_container_width=True):
+                track_rating(movie_id, rating_value, source="recommendation")
+
 
 st.set_page_config(page_title="AI Recommendation", layout="wide")
 load_stylesheet()
 render_app_navigation("ai_recommendation")
+ensure_streaming_session()
+track_page_visit("recommendation")
 
 if "ai_prompt" not in st.session_state:
     st.session_state.ai_prompt = DEFAULT_PROMPT
@@ -178,6 +225,8 @@ with control_col:
 
     if submitted:
         st.session_state.ai_prompt = prompt
+        if prompt.strip():
+            track_search(prompt, source_page="recommendation")
         st.session_state.ai_results = run_recommendation(prompt, top_k)
         st.session_state.ai_top_k = top_k
 
@@ -209,6 +258,7 @@ if result_context:
 
     mode_label = "Fallback Popular Titles" if result_context["fallback_used"] else "Genre-Matched Ranking"
     request_text = result_context["input"] if result_context["input"].strip() else "Empty request"
+    ml_model_info = result_context.get("ml_model") or {}
     summary_col1, summary_col2 = st.columns([1.35, 0.95], gap="large")
     with summary_col1:
         st.markdown(
@@ -226,7 +276,7 @@ if result_context:
         )
 
     with summary_col2:
-        stats_col1, stats_col2, stats_col3 = st.columns(3, gap="small")
+        stats_col1, stats_col2, stats_col3, stats_col4 = st.columns(4, gap="small")
         with stats_col1:
             render_summary_tile(
                 "Keywords",
@@ -245,6 +295,12 @@ if result_context:
                 len(result_context["results"]),
                 "Returned",
             )
+        with stats_col4:
+            render_summary_tile(
+                "Best Model",
+                ml_model_info.get("model_name", "N/A"),
+                "ML layer",
+            )
 
     diag_col1, diag_col2 = st.columns(2, gap="large")
     with diag_col1:
@@ -262,6 +318,16 @@ if result_context:
             result_context["genres"],
             "No valid genres detected. The system used popular-title fallback.",
         )
+
+    metrics = ml_model_info.get("metrics", {})
+    if metrics:
+        ml_col1, ml_col2, ml_col3 = st.columns(3, gap="small")
+        with ml_col1:
+            render_summary_tile("ROC-AUC", f"{metrics.get('roc_auc', 0):.3f}", "Best model")
+        with ml_col2:
+            render_summary_tile("F1", f"{metrics.get('f1', 0):.3f}", "Best model")
+        with ml_col3:
+            render_summary_tile("Accuracy", f"{metrics.get('accuracy', 0):.3f}", "Best model")
 
     st.divider()
 
@@ -312,3 +378,7 @@ else:
         """,
         unsafe_allow_html=True,
     )
+
+st.divider()
+
+render_debug_panel()

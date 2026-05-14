@@ -24,3 +24,6 @@ build/
 *.egg
 *.egg-info/
 etl-pipeline/*
+
+venv/*
+data_factory/*
